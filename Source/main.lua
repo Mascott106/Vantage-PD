@@ -58,20 +58,29 @@ local FONT_RESULT_PATH = "fonts/Roobert-24-Medium"
 local fontUI = nil
 local fontResult = nil
 
+-- Advantage/disadvantage state
+local advantageMode = nil -- nil, "advantage", or "disadvantage"
+local advantageNumber = 0
+
 -- Shape drawing functions
 local function drawCircle(x, y, radius)
 	gfx.drawCircleInRect(x - radius, y - radius, radius * 2, radius * 2)
 end
 
 local function drawSquare(x, y, size)
-	local halfSize = size / 2
-	gfx.drawRect(x - halfSize, y - halfSize, size, size)
+	-- Scale up so the diagonal matches the diameter of polygons
+	local scale = math.sqrt(2)
+	local halfSize = (size * scale) / 2
+	gfx.drawRect(x - halfSize, y - halfSize, size * scale, size * scale)
 end
 
 local function drawTriangle(x, y, size)
-	local p1 = playdate.geometry.point.new(x, y - size/2)  -- top
-	local p2 = playdate.geometry.point.new(x - size/2, y + size/2)  -- bottom left
-	local p3 = playdate.geometry.point.new(x + size/2, y + size/2)   -- bottom right
+	-- Scale up so the height matches the diameter of polygons
+	local scale = 1.15
+	local s = size * scale
+	local p1 = playdate.geometry.point.new(x, y - s/2)  -- top
+	local p2 = playdate.geometry.point.new(x - s/2, y + s/2)  -- bottom left
+	local p3 = playdate.geometry.point.new(x + s/2, y + s/2)   -- bottom right
 	local points = {p1, p2, p3}
 	table.insert(points, playdate.geometry.point.new(p1.x, p1.y))
 	local polygon = playdate.geometry.polygon.new(points)
@@ -122,9 +131,10 @@ local function drawDodecagon(x, y, size)
 end
 
 local function drawIcosahedron(x, y, size)
+	-- Draw a decagon (10-sided polygon) for the d20
 	local points = {}
-	for i = 0, 19 do
-		local angle = (i * 2 * math.pi / 20)
+	for i = 0, 9 do
+		local angle = (i * 2 * math.pi / 10)
 		table.insert(points, playdate.geometry.point.new(
 			x + size * math.cos(angle),
 			y + size * math.sin(angle)
@@ -148,6 +158,18 @@ local function drawPentacontagon(x, y, size)
 	local polygon = playdate.geometry.polygon.new(points)
 	gfx.drawPolygon(polygon)
 end
+
+-- Map shape names to draw functions
+local shapeDrawFunctions = {
+	circle = drawCircle,
+	square = drawSquare,
+	triangle = drawTriangle,
+	pentagon = drawPentagon,
+	octagon = drawOctagon,
+	dodecagon = drawDodecagon,
+	icosahedron = drawIcosahedron,
+	pentacontagon = drawPentacontagon
+}
 
 local function loadGame()
 	playdate.display.setRefreshRate(50) -- Sets framerate to 50 fps
@@ -179,16 +201,41 @@ local function loadGame()
 end
 
 local function updateGame()
+	-- Toggle advantage/disadvantage
+	if currentDice and currentDice.name ~= "Coin" then
+		if playdate.buttonJustPressed(playdate.kButtonUp) then
+			if advantageMode == "advantage" then
+				advantageMode = nil
+				advantageNumber = 0
+			else
+				advantageMode = "advantage"
+				advantageNumber = 0
+			end
+		elseif playdate.buttonJustPressed(playdate.kButtonDown) then
+			if advantageMode == "disadvantage" then
+				advantageMode = nil
+				advantageNumber = 0
+			else
+				advantageMode = "disadvantage"
+				advantageNumber = 0
+			end
+		end
+	else
+		advantageMode = nil
+		advantageNumber = 0
+	end
+
 	-- Check if A button was just pressed
 	if playdate.buttonJustPressed(playdate.kButtonA) then
-		-- Generate random number based on current dice type
 		if currentDice and currentDice.sides then
-			-- Get the current uptime
 			local uptime = playdate.getCurrentTimeMilliseconds()
-			-- Add uptime to the random number generation and ensure it stays within bounds
 			currentNumber = (math.random(1, currentDice.sides) + math.floor(uptime / 1000)) % currentDice.sides + 1
-
-			-- Play appropriate sound effect with random pitch and speed
+			if advantageMode then
+				advantageNumber = (math.random(1, currentDice.sides) + math.floor(uptime / 500)) % currentDice.sides + 1
+			else
+				advantageNumber = 0
+			end
+			-- Play sound
 			local randomRate = MIN_DEVIATION + (math.random() * (MAX_DEVIATION - MIN_DEVIATION))
 			if currentDice.name == "Coin" then
 				if flipSound then
@@ -201,28 +248,24 @@ local function updateGame()
 					rollSound:play()
 				end
 			end
-
-			-- Calculate delay based on the random rate
 			local delayTime = currentDice.name == "Coin" and COIN_FLIP_DELAY or DICE_ROLL_DELAY
-			delayTime = delayTime * randomRate -- Adjust delay based on sound rate
-
-			-- Start the delay timer for displaying the number
+			delayTime = delayTime * randomRate
 			playdate.timer.new(delayTime, function()
-				-- Display the number after the delay
 				currentNumber = currentNumber
 			end)
 		end
 	end
 
-	-- Handle D-pad navigation
+	-- Handle D-pad navigation (left/right)
 	if playdate.buttonJustPressed(playdate.kButtonRight) then
 		currentDiceIndex = currentDiceIndex + 1
 		if currentDiceIndex > #diceTypes then
 			currentDiceIndex = 1
 		end
 		currentDice = diceTypes[currentDiceIndex]
-		currentNumber = 0  -- Reset the number when changing dice
-		-- Reset the timer when changing dice
+		currentNumber = 0
+		advantageNumber = 0
+		advantageMode = nil
 		if randomNumberTimer then
 			randomNumberTimer:remove()
 			randomNumberTimer = nil
@@ -235,8 +278,9 @@ local function updateGame()
 			currentDiceIndex = #diceTypes
 		end
 		currentDice = diceTypes[currentDiceIndex]
-		currentNumber = 0  -- Reset the number when changing dice
-		-- Reset the timer when changing dice
+		currentNumber = 0
+		advantageNumber = 0
+		advantageMode = nil
 		if randomNumberTimer then
 			randomNumberTimer:remove()
 			randomNumberTimer = nil
@@ -245,23 +289,24 @@ local function updateGame()
 end
 
 local function drawGame()
-	gfx.clear() -- Clears the screen
-
-	-- Use Nontendo Bold for UI
+	gfx.clear()
 	gfx.setFont(fontUI)
 	local font = fontUI
 
 	local diceText = currentDice and currentDice.name or "Unknown"
 	local diceTextWidth = font:getTextWidth(diceText)
 	local diceTextHeight = font:getHeight()
-
-	-- Dice type label: 24px from the top
 	local diceX = (SCREEN_WIDTH - diceTextWidth) / 2
 	local diceY = 24
 	gfx.drawText(diceText, diceX, diceY)
 
-	-- Result text (number or heads/tails)
-	local resultText
+	-- Exclamation mark for advantage/disadvantage
+	if advantageMode then
+		gfx.drawText("!", SCREEN_WIDTH - font:getTextWidth("!") - 8, 8)
+	end
+
+	-- Result text
+	local resultText, advText = "", ""
 	if currentDice and currentDice.name == "Coin" then
 		if currentNumber == 0 then
 			resultText = ""
@@ -270,44 +315,67 @@ local function drawGame()
 		else
 			resultText = "TAILS"
 		end
+		-- Use fontUI for coin result
+		gfx.setFont(fontUI)
+		local resultTextWidth = fontUI:getTextWidth(resultText)
+		local resultTextHeight = fontUI:getHeight()
+		local shapeCenterY = SCREEN_HEIGHT / 2 - 10
+		local shapeCenterX = SCREEN_WIDTH / 2
+		if currentDice and currentDice.shape then
+			local drawShape = shapeDrawFunctions[currentDice.shape]
+			if drawShape then
+				drawShape(shapeCenterX, shapeCenterY, SHAPE_SIZE/2)
+			end
+		end
+		gfx.drawText(resultText, shapeCenterX - resultTextWidth/2, shapeCenterY - resultTextHeight/2)
 	else
 		resultText = currentNumber > 0 and tostring(currentNumber) or ""
+		advText = advantageNumber > 0 and tostring(advantageNumber) or ""
 	end
-
-	-- Use Roobert 24 for result text
 	gfx.setFont(fontResult)
 	local resultTextWidth = fontResult:getTextWidth(resultText)
 	local resultTextHeight = fontResult:getHeight()
-
-	-- Shape: centered, with enough margin from top and bottom
 	local shapeCenterY = SCREEN_HEIGHT / 2 - 10
 	local shapeCenterX = SCREEN_WIDTH / 2
-	if currentDice and currentDice.shape then
-		if currentDice.shape == "circle" then
-			drawCircle(shapeCenterX, shapeCenterY, SHAPE_SIZE/2)
-		elseif currentDice.shape == "square" then
-			drawSquare(shapeCenterX, shapeCenterY, SHAPE_SIZE)
-		elseif currentDice.shape == "triangle" then
-			drawTriangle(shapeCenterX, shapeCenterY, SHAPE_SIZE)
-		elseif currentDice.shape == "pentagon" then
-			drawPentagon(shapeCenterX, shapeCenterY, SHAPE_SIZE/2)
-		elseif currentDice.shape == "octagon" then
-			drawOctagon(shapeCenterX, shapeCenterY, SHAPE_SIZE/2)
-		elseif currentDice.shape == "dodecagon" then
-			drawDodecagon(shapeCenterX, shapeCenterY, SHAPE_SIZE/2)
-		elseif currentDice.shape == "icosahedron" then
-			drawIcosahedron(shapeCenterX, shapeCenterY, SHAPE_SIZE/2)
-		elseif currentDice.shape == "pentacontagon" then
-			drawPentacontagon(shapeCenterX, shapeCenterY, SHAPE_SIZE/2)
+
+	if advantageMode and advText ~= "" then
+		-- Draw two dice side by side
+		local spacing = SHAPE_SIZE * 1.0 -- Increased spacing to avoid overlap
+		local leftX = shapeCenterX - spacing/2
+		local rightX = shapeCenterX + spacing/2
+		-- Draw shapes
+		if currentDice.shape then
+			local drawShape = shapeDrawFunctions[currentDice.shape]
+			if drawShape then
+				drawShape(leftX, shapeCenterY, SHAPE_SIZE/2)
+				drawShape(rightX, shapeCenterY, SHAPE_SIZE/2)
+			end
 		end
+		-- Draw results
+		local leftText, rightText = resultText, advText
+		if advantageMode == "advantage" and tonumber(advText) > tonumber(resultText) then
+			leftText, rightText = advText, resultText
+		elseif advantageMode == "disadvantage" and tonumber(advText) < tonumber(resultText) then
+			leftText, rightText = advText, resultText
+		end
+		local yOffset = 0
+		if currentDice.shape == "triangle" then yOffset = SHAPE_SIZE * 0.15 end
+		gfx.drawText(leftText, leftX - fontResult:getTextWidth(leftText)/2, shapeCenterY - resultTextHeight/2 + yOffset)
+		gfx.drawText(rightText, rightX - fontResult:getTextWidth(rightText)/2, shapeCenterY - resultTextHeight/2 + yOffset)
+	else
+		-- Draw single die
+		if currentDice and currentDice.shape then
+			local drawShape = shapeDrawFunctions[currentDice.shape]
+			if drawShape then
+				drawShape(shapeCenterX, shapeCenterY, SHAPE_SIZE/2)
+			end
+		end
+		local yOffset = 0
+		if currentDice and currentDice.shape == "triangle" then yOffset = SHAPE_SIZE * 0.15 end
+		gfx.drawText(resultText, shapeCenterX - resultTextWidth/2, shapeCenterY - resultTextHeight/2 + yOffset)
 	end
 
-	-- Result text: centered inside the shape
-	local resultX = shapeCenterX - resultTextWidth / 2
-	local resultY = shapeCenterY - resultTextHeight / 2
-	gfx.drawText(resultText, resultX, resultY)
-
-	-- Switch back to Nontendo Bold for prompts
+	-- Prompts
 	gfx.setFont(fontUI)
 	local rollTextWidth = fontUI:getTextWidth(ROLL_PROMPT)
 	local changeTextWidth = fontUI:getTextWidth(CHANGE_PROMPT)
