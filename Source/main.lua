@@ -5,7 +5,7 @@ import "CoreLibs/timer"
 import "CoreLibs/ui"
 
 -- =============================
--- Dice Visual Configuration --
+-- Dice Visual & Game Config  --
 -- =============================
 local SHAPE_SIZE = 100 -- Default base size for shapes
 local diceVisuals = {
@@ -43,31 +43,25 @@ local currentDice = diceTypes[currentDiceIndex]
 local rollPrompt = nil
 local changePrompt = nil
 
--- Sound effects using playdate.sound.sampleplayer
-local rollSound = nil
-local flipSound = nil
+-- Sound effect deviation values
+local MIN_DEVIATION = 0.7 -- Minimum playback rate (increased variation)
+local MAX_DEVIATION = 1.3 -- Maximum playback rate (increased variation)
 
--- Define sound effect deviation values
-local MIN_DEVIATION = 0.8 -- Minimum playback rate
-local MAX_DEVIATION = 1.2 -- Maximum playback rate
+-- Sound file paths
+local ROLL_SOUND_PATH = "sound/roll_adpcm.wav"
+local FLIP_SOUND_PATH = "sound/flip_adpcm.wav"
 
--- Define shape size
-local SHAPE_SIZE = 100 -- Increased base size for shapes
+-- Roll/flip animation durations (ms)
+local COIN_FLIP_DELAY = 750
+local DICE_ROLL_DELAY = 750
 
--- Define button prompts
-local ROLL_PROMPT = "A: Roll"
-local CHANGE_PROMPT = "Left/Right: Change"
-
--- Define delay times for coin flips and dice rolls
-local COIN_FLIP_DELAY = 750 -- Delay in milliseconds for coin flips
-local DICE_ROLL_DELAY = 750 -- Delay in milliseconds for dice rolls
-
--- Timer for random number generation
-local randomNumberTimer = nil
-
--- Font file path variables
+-- Font file paths
 local FONT_UI_PATH = "fonts/Roobert-20-Medium"
 local FONT_RESULT_PATH = "fonts/Roobert-24-Medium"
+
+-- Prompt text
+local ROLL_PROMPT = "A: Roll"
+local CHANGE_PROMPT = "Left/Right: Change"
 
 -- Font variables
 local fontUI = nil
@@ -76,6 +70,9 @@ local fontResult = nil
 -- Advantage/disadvantage state
 local advantageMode = nil -- nil, "advantage", or "disadvantage"
 local advantageNumber = 0
+
+-- Timer for random number generation
+local randomNumberTimer = nil
 
 -- Shape drawing functions
 local function drawCircle(x, y, radius)
@@ -191,8 +188,8 @@ local function loadGame()
 	math.randomseed(playdate.getSecondsSinceEpoch()) -- seed for math.random
 
 	-- Load sound effects using playdate.sound.sampleplayer
-	rollSound = playdate.sound.sampleplayer.new("sound/roll_adpcm.wav")
-	flipSound = playdate.sound.sampleplayer.new("sound/flip_adpcm.wav")
+	rollSound = playdate.sound.sampleplayer.new(ROLL_SOUND_PATH)
+	flipSound = playdate.sound.sampleplayer.new(FLIP_SOUND_PATH)
 
 	-- Load fonts using the defined font path variables
 	fontUI = playdate.graphics.font.new(FONT_UI_PATH)
