@@ -1,0 +1,8 @@
+name=Vantage PD
+author=Mascott
+description=A Fun and Functional Dice Rolling App for Playdate
+bundleID=com.mascott.vantage
+version=0.5
+buildNumber=1
+pdxversion=20703
+buildtime=801944075

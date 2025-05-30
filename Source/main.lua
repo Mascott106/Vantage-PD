@@ -93,10 +93,15 @@ local function drawTriangle(x, y, size)
 	local p1 = playdate.geometry.point.new(x, y - s/2)  -- top
 	local p2 = playdate.geometry.point.new(x - s/2, y + s/2)  -- bottom left
 	local p3 = playdate.geometry.point.new(x + s/2, y + s/2)   -- bottom right
-	local points = {p1, p2, p3}
-	table.insert(points, playdate.geometry.point.new(p1.x, p1.y))
-	local polygon = playdate.geometry.polygon.new(points)
-	gfx.drawPolygon(polygon)
+	
+	if p1 and p2 and p3 then
+		local points = {p1, p2, p3}
+		table.insert(points, playdate.geometry.point.new(p1.x, p1.y))
+		local polygon = playdate.geometry.polygon.new(points)
+		if polygon then
+			gfx.drawPolygon(polygon)
+		end
+	end
 end
 
 local function drawPentagon(x, y, size)
@@ -187,18 +192,28 @@ local function loadGame()
 	playdate.display.setRefreshRate(50) -- Sets framerate to 50 fps
 	math.randomseed(playdate.getSecondsSinceEpoch()) -- seed for math.random
 
-	-- Load sound effects using playdate.sound.sampleplayer
+	-- Load sounds
 	rollSound = playdate.sound.sampleplayer.new(ROLL_SOUND_PATH)
 	flipSound = playdate.sound.sampleplayer.new(FLIP_SOUND_PATH)
+	if not rollSound or not flipSound then
+		print("Error: Failed to load sound files.")
+	end
 
-	-- Load fonts using the defined font path variables
+	-- Load fonts
 	fontUI = playdate.graphics.font.new(FONT_UI_PATH)
 	fontResult = playdate.graphics.font.new(FONT_RESULT_PATH)
 	if not fontUI or not fontResult then
-		print("Error: Failed to load one or both fonts.")
-		return
+		print("Error: Failed to load font files.")
 	end
-	gfx.setFont(fontUI) -- Set the UI font as active
+
+	-- Set up initial game state
+	currentShape = "Coin"
+	shapeCount = 1
+	results = {}
+	lastRollTime = 0
+	lastChangeTime = 0
+	changeCooldown = 200 -- ms between changes
+	rollCooldown = 500 -- ms between rolls
 
 	-- Initialize currentNumber to 0
 	currentNumber = 0
@@ -302,19 +317,20 @@ end
 
 local function drawGame()
 	gfx.clear()
+	
+	if not fontUI then return end
 	gfx.setFont(fontUI)
-	local font = fontUI
-
+	
 	local diceText = currentDice and currentDice.name or "Unknown"
-	local diceTextWidth = font:getTextWidth(diceText)
-	local diceTextHeight = font:getHeight()
+	local diceTextWidth = fontUI:getTextWidth(diceText)
+	local diceTextHeight = fontUI:getHeight()
 	local diceX = (SCREEN_WIDTH - diceTextWidth) / 2
 	local diceY = 24
 	gfx.drawText(diceText, diceX, diceY)
 
 	-- Exclamation mark for advantage/disadvantage
 	if advantageMode then
-		gfx.drawText("!", SCREEN_WIDTH - font:getTextWidth("!") - 8, 8)
+		gfx.drawText("!", SCREEN_WIDTH - fontUI:getTextWidth("!") - 8, 8)
 	end
 
 	-- Result text
@@ -350,14 +366,18 @@ local function drawGame()
 	else
 		resultText = currentNumber > 0 and tostring(currentNumber) or ""
 		advText = advantageNumber > 0 and tostring(advantageNumber) or ""
+		
+		if not fontResult then return end
 		gfx.setFont(fontResult)
+		
 		local resultTextWidth = fontResult:getTextWidth(resultText)
 		local resultTextHeight = fontResult:getHeight()
+		
 		if advantageMode and advText ~= "" then
 			-- Draw two dice side by side
 			local leftX = shapeCenterX - spacing/2
 			local rightX = shapeCenterX + spacing/2
-			if currentDice.shape then
+			if currentDice and currentDice.shape then
 				local drawShape = shapeDrawFunctions[currentDice.shape]
 				if drawShape then
 					drawShape(leftX, shapeCenterY, shapeSize/2)
@@ -371,7 +391,7 @@ local function drawGame()
 				leftText, rightText = advText, resultText
 			end
 			local yOffset = 0
-			if currentDice.shape == "triangle" then yOffset = shapeSize * 0.15 end
+			if currentDice and currentDice.shape == "triangle" then yOffset = shapeSize * 0.15 end
 			gfx.drawText(leftText, leftX - fontResult:getTextWidth(leftText)/2, shapeCenterY - resultTextHeight/2 + yOffset)
 			gfx.drawText(rightText, rightX - fontResult:getTextWidth(rightText)/2, shapeCenterY - resultTextHeight/2 + yOffset)
 		else
@@ -387,6 +407,7 @@ local function drawGame()
 		end
 	end
 
+	if not fontUI then return end
 	gfx.setFont(fontUI)
 	local rollTextWidth = fontUI:getTextWidth(ROLL_PROMPT)
 	local changeTextWidth = fontUI:getTextWidth(CHANGE_PROMPT)
