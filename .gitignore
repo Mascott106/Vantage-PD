@@ -1,1 +1,18 @@
-Builds/*
+# Playdate build files
+*.pdx
+Vantage-PD.pdx/
+VantagePD.pdx/
+
+# Build artifacts
+build/
+*.pdz
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
