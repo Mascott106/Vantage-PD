@@ -4,6 +4,21 @@ import "CoreLibs/sprites"
 import "CoreLibs/timer"
 import "CoreLibs/ui"
 
+-- =============================
+-- Dice Visual Configuration --
+-- =============================
+local SHAPE_SIZE = 100 -- Default base size for shapes
+local diceVisuals = {
+	Coin = {size = SHAPE_SIZE, spacing = 1.0},
+	d4 = {size = SHAPE_SIZE, spacing = .8},
+	d6 = {size = SHAPE_SIZE, spacing = 1.0},
+	d8 = {size = SHAPE_SIZE, spacing = 1.1},
+	d10 = {size = SHAPE_SIZE, spacing = 1.1},
+	d12 = {size = SHAPE_SIZE, spacing = 1.1},
+	d20 = {size = SHAPE_SIZE, spacing = 1.1},
+	d100 = {size = SHAPE_SIZE, spacing = 1.1},
+}
+
 local gfx <const> = playdate.graphics
 local ui <const> = playdate.ui
 local SCREEN_WIDTH <const> = 400
@@ -307,7 +322,16 @@ local function drawGame()
 
 	-- Result text
 	local resultText, advText = "", ""
+	local shapeCenterY = SCREEN_HEIGHT / 2 - 10
+	local shapeCenterX = SCREEN_WIDTH / 2
+
+	-- Get per-dice visuals
+	local visuals = diceVisuals[currentDice and currentDice.name or "d6"] or {size = SHAPE_SIZE, spacing = 1.0}
+	local shapeSize = visuals.size
+	local spacing = shapeSize * visuals.spacing
+
 	if currentDice and currentDice.name == "Coin" then
+		-- Handle coin display
 		if currentNumber == 0 then
 			resultText = ""
 		elseif currentNumber == 1 then
@@ -319,63 +343,53 @@ local function drawGame()
 		gfx.setFont(fontUI)
 		local resultTextWidth = fontUI:getTextWidth(resultText)
 		local resultTextHeight = fontUI:getHeight()
-		local shapeCenterY = SCREEN_HEIGHT / 2 - 10
-		local shapeCenterX = SCREEN_WIDTH / 2
 		if currentDice and currentDice.shape then
 			local drawShape = shapeDrawFunctions[currentDice.shape]
 			if drawShape then
-				drawShape(shapeCenterX, shapeCenterY, SHAPE_SIZE/2)
+				drawShape(shapeCenterX, shapeCenterY, shapeSize/2)
 			end
 		end
 		gfx.drawText(resultText, shapeCenterX - resultTextWidth/2, shapeCenterY - resultTextHeight/2)
 	else
 		resultText = currentNumber > 0 and tostring(currentNumber) or ""
 		advText = advantageNumber > 0 and tostring(advantageNumber) or ""
-	end
-	gfx.setFont(fontResult)
-	local resultTextWidth = fontResult:getTextWidth(resultText)
-	local resultTextHeight = fontResult:getHeight()
-	local shapeCenterY = SCREEN_HEIGHT / 2 - 10
-	local shapeCenterX = SCREEN_WIDTH / 2
-
-	if advantageMode and advText ~= "" then
-		-- Draw two dice side by side
-		local spacing = SHAPE_SIZE * 1.0 -- Increased spacing to avoid overlap
-		local leftX = shapeCenterX - spacing/2
-		local rightX = shapeCenterX + spacing/2
-		-- Draw shapes
-		if currentDice.shape then
-			local drawShape = shapeDrawFunctions[currentDice.shape]
-			if drawShape then
-				drawShape(leftX, shapeCenterY, SHAPE_SIZE/2)
-				drawShape(rightX, shapeCenterY, SHAPE_SIZE/2)
+		gfx.setFont(fontResult)
+		local resultTextWidth = fontResult:getTextWidth(resultText)
+		local resultTextHeight = fontResult:getHeight()
+		if advantageMode and advText ~= "" then
+			-- Draw two dice side by side
+			local leftX = shapeCenterX - spacing/2
+			local rightX = shapeCenterX + spacing/2
+			if currentDice.shape then
+				local drawShape = shapeDrawFunctions[currentDice.shape]
+				if drawShape then
+					drawShape(leftX, shapeCenterY, shapeSize/2)
+					drawShape(rightX, shapeCenterY, shapeSize/2)
+				end
 			end
-		end
-		-- Draw results
-		local leftText, rightText = resultText, advText
-		if advantageMode == "advantage" and tonumber(advText) > tonumber(resultText) then
-			leftText, rightText = advText, resultText
-		elseif advantageMode == "disadvantage" and tonumber(advText) < tonumber(resultText) then
-			leftText, rightText = advText, resultText
-		end
-		local yOffset = 0
-		if currentDice.shape == "triangle" then yOffset = SHAPE_SIZE * 0.15 end
-		gfx.drawText(leftText, leftX - fontResult:getTextWidth(leftText)/2, shapeCenterY - resultTextHeight/2 + yOffset)
-		gfx.drawText(rightText, rightX - fontResult:getTextWidth(rightText)/2, shapeCenterY - resultTextHeight/2 + yOffset)
-	else
-		-- Draw single die
-		if currentDice and currentDice.shape then
-			local drawShape = shapeDrawFunctions[currentDice.shape]
-			if drawShape then
-				drawShape(shapeCenterX, shapeCenterY, SHAPE_SIZE/2)
+			local leftText, rightText = resultText, advText
+			if advantageMode == "advantage" and tonumber(advText) > tonumber(resultText) then
+				leftText, rightText = advText, resultText
+			elseif advantageMode == "disadvantage" and tonumber(advText) < tonumber(resultText) then
+				leftText, rightText = advText, resultText
 			end
+			local yOffset = 0
+			if currentDice.shape == "triangle" then yOffset = shapeSize * 0.15 end
+			gfx.drawText(leftText, leftX - fontResult:getTextWidth(leftText)/2, shapeCenterY - resultTextHeight/2 + yOffset)
+			gfx.drawText(rightText, rightX - fontResult:getTextWidth(rightText)/2, shapeCenterY - resultTextHeight/2 + yOffset)
+		else
+			if currentDice and currentDice.shape then
+				local drawShape = shapeDrawFunctions[currentDice.shape]
+				if drawShape then
+					drawShape(shapeCenterX, shapeCenterY, shapeSize/2)
+				end
+			end
+			local yOffset = 0
+			if currentDice and currentDice.shape == "triangle" then yOffset = shapeSize * 0.15 end
+			gfx.drawText(resultText, shapeCenterX - resultTextWidth/2, shapeCenterY - resultTextHeight/2 + yOffset)
 		end
-		local yOffset = 0
-		if currentDice and currentDice.shape == "triangle" then yOffset = SHAPE_SIZE * 0.15 end
-		gfx.drawText(resultText, shapeCenterX - resultTextWidth/2, shapeCenterY - resultTextHeight/2 + yOffset)
 	end
 
-	-- Prompts
 	gfx.setFont(fontUI)
 	local rollTextWidth = fontUI:getTextWidth(ROLL_PROMPT)
 	local changeTextWidth = fontUI:getTextWidth(CHANGE_PROMPT)
