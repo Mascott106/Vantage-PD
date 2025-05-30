@@ -20,6 +20,8 @@ A dice roller app for the Playdate console that supports various dice types and 
   - Sound effects for rolling and flipping with random playback rate variation
   - Advantage/Disadvantage mode for all dice except coin
   - Clean, modern UI with Roobert fonts
+  - Configurable per-dice size and spacing
+  - Robust error handling and nil checks
 
 - **Controls:**
   - A: Roll/Flip
@@ -36,18 +38,35 @@ A dice roller app for the Playdate console that supports various dice types and 
 
 ## Recent Updates
 
-- Added advantage/disadvantage mode
-- Improved shape drawing for all dice types
-- Enhanced random number generation
-- Added sound effects with playback rate variation
-- Updated UI with Roobert fonts
-- Optimized shape sizes and positioning
-- Added visual indicators for advantage/disadvantage mode
-- Improved result text positioning and scaling
+- Added comprehensive nil checks and error handling
+- Improved variable initialization and scope management
+- Centralized configuration for easy customization
+- Added per-dice size and spacing configuration
+- Enhanced shape drawing with proper error handling
+- Improved font loading and error recovery
+- Optimized sound effect loading and playback
+- Added early returns for missing resources
+
+## Configuration
+
+The app's main configuration is centralized at the top of `main.lua` for easy customization:
+
+- **Dice Visuals:** Configure size and spacing for each die type
+- **Sound Effects:** Adjust playback rate variation and file paths
+- **Animation:** Customize roll/flip animation durations
+- **Fonts:** Set font paths and sizes
+- **UI Text:** Customize button prompts and messages
 
 ## Development
 
 This project is built using the Playdate SDK and Lua programming language. The app is designed to be simple yet feature-rich, providing a satisfying dice rolling experience on the Playdate console.
+
+### Code Organization
+
+- **Configuration:** All configurable values are at the top of `main.lua`
+- **Error Handling:** Comprehensive nil checks and error recovery
+- **Resource Management:** Proper loading and error handling for fonts and sounds
+- **Performance:** Optimized drawing and update functions
 
 ## License
 
