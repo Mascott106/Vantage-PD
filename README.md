@@ -47,6 +47,14 @@ A dice roller app for the Playdate console that supports various dice types and 
 - Optimized sound effect loading and playback
 - Added early returns for missing resources
 
+## Planned Updates 
+
+- [ ] Case & PCB Design
+- [ ] Add support for arbitrary & custom dice rolls
+- [ ] Additional sound effect variations
+- [ ] Add support for saving favorite dice configurations
+- [ ] Onboarding documentation
+
 ## Configuration
 
 The app's main configuration is centralized at the top of `main.lua` for easy customization:
