@@ -14,7 +14,7 @@ Perfect for tabletop gaming, D&D sessions, or just having fun with friends!
 
 ## Features
 
-- **Core Features:**
+✨ **Core Features:**
   - Visual representation of dice using geometric shapes
   - Random number generation using uptime and accelerometer data
   - Sound effects for rolling and flipping with random playback rate variation
@@ -23,32 +23,32 @@ Perfect for tabletop gaming, D&D sessions, or just having fun with friends!
   - Configurable per-dice size and spacing
   - Robust error handling and nil checks
 
-- **Controls:**
+🎮 **Controls:**
   - A: Roll/Flip
   - Left/Right: Change dice type
   - Up: Toggle advantage mode
   - Down: Toggle disadvantage mode
 
-- **UI Elements:**
+🎯 **UI Elements:**
   - Dice type indicator at top
   - Result display in center
   - Button prompts at bottom
   - Exclamation mark indicator for advantage/disadvantage mode
   - Dual result display when advantage/disadvantage is active
 
-## Supported Dice
+## Supported Dice 🎲
 
 The app supports the following dice types:
-- Coin (Heads/Tails)
-- d4 (Triangle)
-- d6 (Square)
-- d8 (Octagon)
-- d10 (Pentagon)
-- d12 (Hexagon)
-- d20 (Decagon)
-- d100 (50-sided polygon)
+- Coin (Heads/Tails) ⚪
+- d4 (Triangle) 🔺
+- d6 (Square) ⬛
+- d8 (Octagon) ⬡
+- d10 (Pentagon) ⬟
+- d12 (Hexagon) ⬢
+- d20 (Decagon) 🔷
+- d100 (50-sided polygon) 💯
 
-## Recent Updates
+## Recent Updates 📝
 
 - Added comprehensive nil checks and error handling
 - Improved variable initialization and scope management
@@ -59,7 +59,7 @@ The app supports the following dice types:
 - Optimized sound effect loading and playback
 - Added early returns for missing resources
 
-## To Do (?)
+## To Do (?) 📋
 
 - [ ] Add support for custom dice combinations
 - [ ] Implement dice roll history
@@ -69,7 +69,7 @@ The app supports the following dice types:
 - [ ] Implement a dark/light theme toggle
 - [ ] Create a tutorial mode for new users
 
-## Development
+## Development 🛠️
 
 This project is built using the Playdate SDK and Lua programming language. The app is designed to be simple yet feature-rich, providing a satisfying dice rolling experience on the Playdate console.
 
@@ -90,6 +90,6 @@ The app's main configuration is centralized at the top of `main.lua` for easy cu
 - **Fonts:** Set font paths and sizes
 - **UI Text:** Customize button prompts and messages
 
-## License
+## License 📄
 
 This project is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License - see the LICENSE file for details.
