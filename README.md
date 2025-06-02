@@ -70,4 +70,4 @@ This project is built using the Playdate SDK and Lua programming language. The a
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License - see the LICENSE file for details.
