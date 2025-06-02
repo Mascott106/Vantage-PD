@@ -1,21 +1,21 @@
 # Vantage PD
 
-A dice roller app for the Playdate console that supports various dice types and features.
+A fun and functional dice roller app for the Playdate console that supports various dice types and features.
+
+## About
+
+🎲 A modern dice rolling app for the Playdate console featuring:
+- Beautiful geometric dice representations
+- Advantage/Disadvantage mechanics
+- Customizable visuals and sounds
+- Built with the Playdate SDK in Lua
+
+Perfect for tabletop gaming, D&D sessions, or just having fun with friends!
 
 ## Features
 
-- **Dice Types:**
-  - Coin (Heads/Tails)
-  - d4 (Triangle)
-  - d6 (Square)
-  - d8 (Octagon)
-  - d10 (Pentagon)
-  - d12 (Hexagon)
-  - d20 (Decagon)
-  - d100 (50-sided polygon)
-
 - **Core Features:**
-  - Visual representation of each die type using geometric shapes
+  - Visual representation of dice using geometric shapes
   - Random number generation using uptime and accelerometer data
   - Sound effects for rolling and flipping with random playback rate variation
   - Advantage/Disadvantage mode for all dice except coin
@@ -36,6 +36,18 @@ A dice roller app for the Playdate console that supports various dice types and 
   - Exclamation mark indicator for advantage/disadvantage mode
   - Dual result display when advantage/disadvantage is active
 
+## Supported Dice
+
+The app supports the following dice types:
+- Coin (Heads/Tails)
+- d4 (Triangle)
+- d6 (Square)
+- d8 (Octagon)
+- d10 (Pentagon)
+- d12 (Hexagon)
+- d20 (Decagon)
+- d100 (50-sided polygon)
+
 ## Recent Updates
 
 - Added comprehensive nil checks and error handling
@@ -47,23 +59,15 @@ A dice roller app for the Playdate console that supports various dice types and 
 - Optimized sound effect loading and playback
 - Added early returns for missing resources
 
-## Planned Updates 
+## To Do (?)
 
-- [ ] Case & PCB Design
-- [ ] Add support for arbitrary & custom dice rolls
-- [ ] Additional sound effect variations
+- [ ] Add support for custom dice combinations
+- [ ] Implement dice roll history
+- [ ] Add haptic feedback for rolls
+- [ ] Create additional sound effect variations
 - [ ] Add support for saving favorite dice configurations
-- [ ] Onboarding documentation
-
-## Configuration
-
-The app's main configuration is centralized at the top of `main.lua` for easy customization:
-
-- **Dice Visuals:** Configure size and spacing for each die type
-- **Sound Effects:** Adjust playback rate variation and file paths
-- **Animation:** Customize roll/flip animation durations
-- **Fonts:** Set font paths and sizes
-- **UI Text:** Customize button prompts and messages
+- [ ] Implement a dark/light theme toggle
+- [ ] Create a tutorial mode for new users
 
 ## Development
 
@@ -75,6 +79,16 @@ This project is built using the Playdate SDK and Lua programming language. The a
 - **Error Handling:** Comprehensive nil checks and error recovery
 - **Resource Management:** Proper loading and error handling for fonts and sounds
 - **Performance:** Optimized drawing and update functions
+
+### Configuration
+
+The app's main configuration is centralized at the top of `main.lua` for easy customization:
+
+- **Dice Visuals:** Configure size and spacing for each die type
+- **Sound Effects:** Adjust playback rate variation and file paths
+- **Animation:** Customize roll/flip animation durations
+- **Fonts:** Set font paths and sizes
+- **UI Text:** Customize button prompts and messages
 
 ## License
 
